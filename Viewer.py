@@ -21,8 +21,8 @@ class Viewer:
         """
         self.url = url
         self.secure = secure
-        self.user_agent = self._generate_user_agent()
-        self.headers = self._generate_headers()
+        self.user_agent = self._generate_user_agent()  # Set user_agent
+        self.headers = self._generate_headers()  # Set headers
 
     @property
     def version(self) -> str:
@@ -31,7 +31,7 @@ class Viewer:
 
         :return: A string representing the version.
         """
-        return "v2.0"
+        return "v2.1"
 
     @property
     def full_url(self) -> str:
@@ -80,7 +80,7 @@ class Viewer:
         headers = {
             'Accept-Language': ['en-US', 'en-GB', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'pt-PT', 'ja-JP'],
             # Specifies the accepted language of the response
-            'Accept-Encoding': ['gzip, deflate'],  # Specifies the accepted content encoding
+            'Accept-Encoding': ['utf-8'],  # Specifies the accepted content encoding
             'Referer': [f"https://{r.choice(['google.com', 'bing.com', 'yahoo.com', 'facebook.com'])}"],
             # Provides the address of the previous web page
             'Accept': ['text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'],
@@ -103,10 +103,9 @@ class Viewer:
             'X-Custom-Header': ['unknown'],  # Example of a custom header
             'If-Range': [f'{t.strftime(f"%d, %m %b %Y {t.gmtime().tm_hour}:{t.gmtime().tm_min}:%S GMT")}'],
             # Specifies a precondition header
-            'Max-Forwards': ['9', '10'],  # Limits the number of proxies or gateways that can forward the request
+            'Max-Forwards': ['10', '25'],  # Limits the number of proxies or gateways that can forward the request
             'Expect': ['100-continue'],  # Indicates that the client expects a 100 (Continue) response
             'TE': ['trailers'],  # Specifies the transfer encoding the client is willing to accept
-            'Authorization': ['Bearer <your_access_token>'],
             # Example of Authorization header with a placeholder for access token
             'Cookie': [f'sessionid={"".join(r.choices("0123456789abcdef", k=16))}'],
             # Example of Cookie header with a random session ID
@@ -130,7 +129,7 @@ class Viewer:
         request = urllib.request.Request(url, headers={**self.headers, 'User-Agent': self.user_agent})
         try:
             with urllib.request.urlopen(request) as response:
-                return response.read().decode("utf-8")[:500]  # Return first 500 characters
+                return response.read().decode("utf-8")  # Return page content
         except Exception as e:
             return f"Error: {e}"
 
@@ -140,7 +139,14 @@ class Viewer:
 
         :return: The content of the web page as a string or an error message.
         """
-        return self._make_request(self.full_url)
+        # Send request
+        page_content = self._make_request(self.full_url)
+
+        # Show first 500 characters of page content in console
+        print(f"{page_content[:500]}...")
+
+        # Return the page
+        return page_content
 
     def view_pages(self, views: int, delay: int, verbose: bool = True) -> List[str]:
         """
@@ -151,11 +157,13 @@ class Viewer:
         :param verbose: If True, print each page's content to console.
         :return: List of page content strings or error messages.
         """
-        pages = []
+        pages = []  # Storage
         for i in range(views):
-            page_content = self.view_page()
+            page_content = self.view_page()  # Send request
             pages.append(page_content)
             if verbose:
-                print(f"[{i + 1}:] {page_content}")
-            t.sleep(delay)
+                # Show first 500 characters of page content in console
+                print(f"[{i + 1}:] {page_content[:500]}...")
+            t.sleep(delay)  # Interrupt
+        # Return the pages
         return pages
