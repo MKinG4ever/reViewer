@@ -1,12 +1,12 @@
 import urllib.request
-import random
-import time
+import random as r
+import time as t
+from typing import Dict, List
 
 
 class Viewer:
     """
-    Simple page viewer class with 'urllib.request' module.
-    # Features: save the page
+    Simple page viewer class using the 'urllib.request' module.
 
     This class provides functionality to fetch and display the content of a web page.
     It can handle both HTTP and HTTPS protocols.
@@ -22,15 +22,26 @@ class Viewer:
         self.url = url
         self.secure = secure
         self.user_agent = self._generate_user_agent()
-    
+        self.headers = self._generate_headers()
+
     @property
-    def version(self):
+    def version(self) -> str:
         """
         Return the version of the Viewer.
 
         :return: A string representing the version.
         """
-        return "v1.0"
+        return "v2.0"
+
+    @property
+    def full_url(self) -> str:
+        """
+        Constructs the full URL using the specified protocol (HTTP or HTTPS).
+
+        :return: The full URL as a string.
+        """
+        protocol = "https" if self.secure else "http"
+        return f"{protocol}://{self.url}"
 
     @staticmethod
     def _generate_user_agent() -> str:
@@ -39,74 +50,99 @@ class Viewer:
 
         :return: The generated User-Agent string.
         """
-        browsers = ['chrome', 'firefox', 'ie', 'safari']
-        browser = random.choice(browsers)
-        versions = {
+        browsers = {
             'chrome': ['91.0.4472.124', '90.0.4430.93', '89.0.4389.82', '88.0.4324.150'],
             'firefox': ['89.0', '88.0', '87.0', '86.0', '85.0'],
             'ie': ['11.0', '10.0', '9.0'],
             'safari': ['14.0.3', '14.0', '13.1']
         }
-        os_types = ['windows', 'mac', 'linux']
-        os_type = random.choice(os_types)
-
-        if browser in versions:
-            version = random.choice(versions[browser])
-        else:
-            version = random.choice(list(versions.values())[0])
+        browser = r.choice(list(browsers.keys()))
+        version = r.choice(browsers[browser])
+        os_types = ['Windows', 'Macintosh', 'Linux']
+        os_type = r.choice(os_types)
 
         if browser == 'chrome':
             return f"Mozilla/5.0 ({os_type}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{version} Safari/537.36"
         elif browser == 'firefox':
             return f"Mozilla/5.0 ({os_type}; rv:{version}) Gecko/20100101 Firefox/{version}"
         elif browser == 'ie':
-            return f"Mozilla/5.0 (Windows NT {os_type}; Win64; x64; Trident/7.0; rv:{version}.0) like Gecko"
-        elif browser == 'safari':
+            return f"Mozilla/5.0 (Windows NT {os_type}; Trident/7.0; rv:{version}.0) like Gecko"
+        else:  # Safari
             return f"Mozilla/5.0 ({os_type}) AppleWebKit/537.36 (KHTML, like Gecko) Version/{version} Safari/537.36"
-        else:
-            return f"Mozilla/5.0 ({os_type}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{version} Safari/537.36"
 
     @staticmethod
-    def _make_request(url: str, user_agent: str) -> str:
+    def _generate_headers() -> Dict[str, str]:
+        """
+        Generates randomized headers for the request.
+
+        :return: Dictionary of headers.
+        """
+        headers = {
+            'Accept-Language': ['en-US', 'en-GB', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'pt-PT', 'ja-JP'],
+            # Specifies the accepted language of the response
+            'Accept-Encoding': ['gzip, deflate'],  # Specifies the accepted content encoding
+            'Referer': [f"https://{r.choice(['google.com', 'bing.com', 'yahoo.com', 'facebook.com'])}"],
+            # Provides the address of the previous web page
+            'Accept': ['text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'],
+            # Specifies the media types that are acceptable for the response
+            'Cache-Control': [f'max-age={"".join(r.choices("0123456789"))}'],
+            # Directs caches not to store a response
+            'Connection': ['keep-alive', 'close'],  # Specifies options for maintaining the connection
+            'Content-Type': ['application/x-www-form-urlencoded'],  # Indicates the content type of the request body
+            'Origin': [f"https://{r.choice(['google.com', 'bing.com', 'yahoo.com', 'facebook.com'])}"],
+            # Specifies the origin URL of the request
+            'Upgrade-Insecure-Requests': ['1', '2', '3'],  # Instructs the browser to upgrade to HTTPS if possible
+            'Pragma': ['cache', 'no-cache'],  # Includes pragma directives that apply to the request
+            'If-None-Match': [f'"xyz{int(r.random() * 10 ** 9)}"'],  # Provides a cache validation token
+            'Range': ['bytes=0-1023'],  # Requests only the first 1024 bytes of the resource
+            'DNT': [f"{r.choice(['1', '0'])}"],  # Indicates the Do Not Track preference
+            'X-Forwarded-For': ['.'.join(str(r.randint(0, 255)) for _ in range(4))],
+            # Simulates different IP addresses in X-Forwarded-For header
+            'X-Requested-With': ['XMLHttpRequest'],  # Indicates that the request is an AJAX request
+            'X-Purpose': ['preview'],  # Custom header indicating the purpose of the request
+            'X-Custom-Header': ['unknown'],  # Example of a custom header
+            'If-Range': [f'{t.strftime(f"%d, %m %b %Y {t.gmtime().tm_hour}:{t.gmtime().tm_min}:%S GMT")}'],
+            # Specifies a precondition header
+            'Max-Forwards': ['9', '10'],  # Limits the number of proxies or gateways that can forward the request
+            'Expect': ['100-continue'],  # Indicates that the client expects a 100 (Continue) response
+            'TE': ['trailers'],  # Specifies the transfer encoding the client is willing to accept
+            'Authorization': ['Bearer <your_access_token>'],
+            # Example of Authorization header with a placeholder for access token
+            'Cookie': [f'sessionid={"".join(r.choices("0123456789abcdef", k=16))}'],
+            # Example of Cookie header with a random session ID
+            'If-Match': ['*'],  # Specifies the ETag value that the server must match
+            'X-Frame-Options': ['DENY'],  # Prevents the page from being rendered in a frame or iframe
+            'X-XSS-Protection': ['1; mode=block'],  # Enables XSS filtering in the browser
+            'X-Content-Type-Options': ['nosniff'],  # Prevents MIME-sniffing attacks
+
+        }
+
+        selected_headers = {key: r.choice(values) for key, values in headers.items()}
+        return selected_headers
+
+    def _make_request(self, url: str) -> str:
         """
         Makes an HTTP request to fetch the content of the web page.
 
         :param url: The URL of the web page.
-        :param user_agent: The User-Agent string to use for the request.
         :return: The content of the web page as a string.
         """
+        request = urllib.request.Request(url, headers={**self.headers, 'User-Agent': self.user_agent})
         try:
-            # Construct the request with headers
-            request = urllib.request.Request(url, headers={'User-Agent': user_agent})
-
-            # Open the URL and read the response
             with urllib.request.urlopen(request) as response:
-                # Read the response data and decode it to a string
-                page_content = response.read().decode("utf-8")
-                return page_content[:500]  # Return first 500 characters of the page content for preview
-
+                return response.read().decode("utf-8")[:500]  # Return first 500 characters
         except Exception as e:
-            # Handle URL errors
-            print("Error:", e, sep='\n')  # Print in console
-            return f"Error: {e}"  # return Exception
+            return f"Error: {e}"
 
     def view_page(self) -> str:
         """
         Fetches and displays the content of the web page specified in the URL.
 
-        Constructs the URL using the specified protocol (HTTP or HTTPS), sets a custom User-Agent,
-        and returns the first 500 characters of the fetched page content.
-
         :return: The content of the web page as a string or an error message.
         """
-        protocol = "https" if self.secure else "http"  # 'http://' or 'https://'
-        full_url = f"{protocol}://{self.url}"
+        return self._make_request(self.full_url)
 
-        # Make the HTTP request with the generated User-Agent
-        page_preview = self._make_request(full_url, self.user_agent)
-        return page_preview
-
-    def view_pages(self, views: int, delay: int, verbose=True) -> list:
+    def view_pages(self, views: int, delay: int, verbose: bool = True) -> List[str]:
         """
         Fetches and displays multiple pages with a delay between each view.
 
@@ -115,17 +151,11 @@ class Viewer:
         :param verbose: If True, print each page's content to console.
         :return: List of page content strings or error messages.
         """
-        pages = []  # Storage
+        pages = []
         for i in range(views):
-            # Fetch the page content
             page_content = self.view_page()
             pages.append(page_content)
-
-            # Print page content if verbose is True
             if verbose:
                 print(f"[{i + 1}:] {page_content}")
-
-            # Introduce a delay between each page view
-            time.sleep(delay)
-
+            t.sleep(delay)
         return pages
