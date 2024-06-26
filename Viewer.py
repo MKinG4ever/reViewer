@@ -1,7 +1,7 @@
 import urllib.request
 import random as r
 import time as t
-from typing import Dict, List
+from typing import Dict, List, Any
 
 
 class Viewer:
@@ -24,6 +24,18 @@ class Viewer:
         self.user_agent = self._generate_user_agent()  # Set user_agent
         self.headers = self._generate_headers()  # Set headers
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Viewer object.
+
+        :return: String representation of the Viewer object.
+        """
+        return (f"Viewer Object {self.version}\n"
+                f"Address \t:{self.full_url}\n"
+                f"User-Agent \t:{self.user_agent}\n"
+                f"Headers \t:{self.headers}\n"
+                f"Object ID \t:{id(self)}\n")
+
     @property
     def version(self) -> str:
         """
@@ -31,7 +43,7 @@ class Viewer:
 
         :return: A string representing the version.
         """
-        return "v2.1"
+        return "v3.1"
 
     @property
     def full_url(self) -> str:
@@ -77,7 +89,7 @@ class Viewer:
 
         :return: Dictionary of headers.
         """
-        headers = {
+        _headers = {
             'Accept-Language': ['en-US', 'en-GB', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'pt-PT', 'ja-JP'],
             # Specifies the accepted language of the response
             'Accept-Encoding': ['utf-8'],  # Specifies the accepted content encoding
@@ -113,11 +125,28 @@ class Viewer:
             'X-Frame-Options': ['DENY'],  # Prevents the page from being rendered in a frame or iframe
             'X-XSS-Protection': ['1; mode=block'],  # Enables XSS filtering in the browser
             'X-Content-Type-Options': ['nosniff'],  # Prevents MIME-sniffing attacks
-
         }
 
-        selected_headers = {key: r.choice(values) for key, values in headers.items()}
-        return selected_headers
+        # Randomized all headers
+        all_headers = {key: r.choice(values) for key, values in _headers.items()}
+
+        # List the dict values
+        listed_headers = [{key: val} for key, val in all_headers.items()]
+
+        # Shuffle the list of headers
+        r.shuffle(listed_headers)
+
+        # Random number for length of return
+        num = r.randint(a=1, b=len(listed_headers))
+
+        # Select shuffled headers from 0 to num
+        selected_headers = listed_headers[:num]
+
+        # Combine into single dic again
+        combined_headers = {key: val for header in selected_headers for key, val in header.items()}
+
+        # Return limited headers in random order
+        return combined_headers
 
     def _make_request(self, url: str) -> str:
         """
@@ -139,14 +168,8 @@ class Viewer:
 
         :return: The content of the web page as a string or an error message.
         """
-        # Send request
-        page_content = self._make_request(self.full_url)
-
-        # Show first 500 characters of page content in console
-        print(f"{page_content[:500]}...")
-
-        # Return the page
-        return page_content
+        # Make a view and return the page content
+        return self._make_request(self.full_url)
 
     def view_pages(self, views: int, delay: int, verbose: bool = True) -> List[str]:
         """
