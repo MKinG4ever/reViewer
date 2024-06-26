@@ -129,12 +129,3 @@ class Viewer:
             time.sleep(delay)
 
         return pages
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Create a Viewer instance for 'www.google.com' using HTTPS
-    viewer_https = Viewer(url='www.google.com', secure=True)
-
-    # View 4 pages with a delay of 1 second between each view, and print each page content
-    pages_https = viewer_https.view_pages(4, 1, verbose=True)
