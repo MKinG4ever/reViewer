@@ -2,10 +2,17 @@ from Viewer import Viewer
 
 
 def main():
+    """
+    Main function
+    Timestamp 1719490798.5711012
+    Version 1.0
+
+    :return:
+    """
     # Visual input
     _url = input('Enter URL (Ex: www.google.com): ')
     _views = int(input('How many views: '))
-    _delay = 2  # seconds
+    _delay = int(input('Delay between views: '))
 
     # Create a Viewer instance for 'www.google.com' using HTTPS
     site = Viewer(url=_url, secure=True)
