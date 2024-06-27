@@ -43,7 +43,7 @@ class Viewer:
 
         :return: A string representing the version.
         """
-        return "v3.1"
+        return "Custom v3.2"
 
     @property
     def full_url(self) -> str:
@@ -54,6 +54,15 @@ class Viewer:
         """
         protocol = "https" if self.secure else "http"
         return f"{protocol}://{self.url}"
+
+    @property
+    def html_present(self):
+        return {'Viewer Object': self.version,
+                'Target': self.full_url,
+                'User-Agent': self.user_agent,
+                'Headers': self.headers,
+                'Object ID': id(self),
+                }
 
     @staticmethod
     def _generate_user_agent() -> str:
