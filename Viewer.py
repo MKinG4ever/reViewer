@@ -12,15 +12,13 @@ class Viewer:
     It can handle both HTTP and HTTPS protocols.
     """
 
-    def __init__(self, url: str = 'www.example.com', secure: bool = False):
+    def __init__(self, url: str = 'https://www.example.com'):
         """
         Initializes the Viewer instance with a URL and protocol type.
 
         :param url: The web service address (default is 'www.example.com').
-        :param secure: A boolean indicating whether to use HTTPS (True) or HTTP (False) (default is False).
         """
-        self.url = url
-        self.secure = secure
+        self.url = url  # Full url
         self.user_agent = self._generate_user_agent()  # Set user_agent
         self.headers = self._generate_headers()  # Set headers
 
@@ -31,9 +29,7 @@ class Viewer:
         :return: String representation of the Viewer object.
         """
         return (f"Viewer Object {self.version}\n"
-                f"Address \t:{self.full_url}\n"
-                f"User-Agent \t:{self.user_agent}\n"
-                f"Headers \t:{self.headers}\n"
+                f"Address \t:{self.url}\n"
                 f"Object ID \t:{id(self)}\n")
 
     @property
@@ -43,17 +39,7 @@ class Viewer:
 
         :return: A string representing the version.
         """
-        return "v3.1"
-
-    @property
-    def full_url(self) -> str:
-        """
-        Constructs the full URL using the specified protocol (HTTP or HTTPS).
-
-        :return: The full URL as a string.
-        """
-        protocol = "https" if self.secure else "http"
-        return f"{protocol}://{self.url}"
+        return "v4.1"
 
     @staticmethod
     def _generate_user_agent() -> str:
@@ -148,6 +134,11 @@ class Viewer:
         # Return limited headers in random order
         return combined_headers
 
+    def set_new_headers(self) -> None:
+        self.user_agent = self._generate_user_agent()  # Set user_agent
+        self.headers = self._generate_headers()  # Set headers
+        print(f"UserAgent:\t{self.user_agent}", f"Headers:\t{self.headers}", sep='\n')
+
     def _make_request(self, url: str) -> str:
         """
         Makes an HTTP request to fetch the content of the web page.
@@ -155,6 +146,7 @@ class Viewer:
         :param url: The URL of the web page.
         :return: The content of the web page as a string.
         """
+
         request = urllib.request.Request(url, headers={**self.headers, 'User-Agent': self.user_agent})
         try:
             with urllib.request.urlopen(request) as response:
@@ -169,7 +161,7 @@ class Viewer:
         :return: The content of the web page as a string or an error message.
         """
         # Make a view and return the page content
-        return self._make_request(self.full_url)
+        return self._make_request(self.url)
 
     def view_pages(self, views: int, delay: int, verbose: bool = True) -> List[str]:
         """
@@ -182,11 +174,12 @@ class Viewer:
         """
         pages = []  # Storage
         for i in range(views):
+            self.set_new_headers()  # New headers each time
             page_content = self.view_page()  # Send request
             pages.append(page_content)
             if verbose:
                 # Show first 500 characters of page content in console
-                print(f"[{i + 1}:] {page_content[:500]}...")
+                print(f"[{i + 1}:] {page_content[:500]}...\n")
             t.sleep(delay)  # Interrupt
         # Return the pages
         return pages
